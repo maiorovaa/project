@@ -1,0 +1,236 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Polka.Desktop.ViewModels"
+        xmlns:models="using:Polka.Desktop.Models"
+        x:Class="Polka.Desktop.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="Полка"
+        Width="1280"
+        Height="820"
+        MinWidth="980"
+        MinHeight="640"
+        Background="#12110E"
+        Foreground="#F3ECDF"
+        FontFamily="Inter, DejaVu Sans, sans-serif">
+  <Panel>
+    <TextBlock Text="Полка"
+               FontSize="42"
+               Foreground="#E0A15A"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               IsVisible="{Binding IsBooting}" />
+    <Border IsVisible="{Binding ShowLogin}"
+            Background="#12110E"
+            Padding="24">
+      <Border Width="420"
+              Padding="22"
+              CornerRadius="16"
+              Background="#1B1915"
+              BorderBrush="#3A342A"
+              BorderThickness="1"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center">
+        <StackPanel Spacing="8">
+          <TextBlock Classes="kicker" Text="ДЕСКТОП · C# / .NET 8" />
+          <TextBlock Text="Полка" FontSize="40" Foreground="#E0A15A" />
+          <TextBlock Classes="muted" Text="Тот же дом, что и в браузере: общий каталог, ваши оценки и сканер папок." />
+          <TextBlock Classes="muted" Text="Адрес сервера" Margin="0,8,0,0" />
+          <TextBox Text="{Binding Host, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+          <TextBlock Classes="muted" Text="Имя или почта" />
+          <TextBox Text="{Binding LoginName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+          <TextBlock Classes="muted" Text="Пароль" />
+          <TextBox Text="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PasswordChar="•" />
+          <TextBlock Classes="error" Text="{Binding LoginError}" IsVisible="{Binding HasLoginError}" />
+          <Button Content="Войти в архив" Command="{Binding LoginCommand}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Left" Margin="0,6,0,0" />
+          <TextBlock Classes="muted" Text="Майорова Анастасия · anastasia · polka-demo" />
+        </StackPanel>
+      </Border>
+    </Border>
+    <Grid IsVisible="{Binding IsAuthenticated}" RowDefinitions="*,30" ColumnDefinitions="220,*,360">
+      <Border Grid.Row="0" Grid.Column="0" Background="#0D0C0A" BorderBrush="#3A342A" BorderThickness="0,0,1,0" Padding="12,16">
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Bottom" Spacing="4" Margin="8,0,8,4">
+            <TextBlock Text="{Binding DisplayName}" />
+            <TextBlock Classes="muted" Text="{Binding RoleLabel}" />
+            <Button Classes="ghost" Content="Выйти" Command="{Binding LogoutCommand}" HorizontalAlignment="Left" Margin="0,8,0,0" />
+          </StackPanel>
+          <StackPanel Spacing="8">
+            <TextBlock Text="Полка" FontSize="28" Foreground="#E0A15A" />
+            <TextBlock Classes="kicker" Text="АРХИВ ДОМА" />
+            <StackPanel Spacing="2" Margin="0,12,0,0">
+              <Button Classes="nav" Classes.active="{Binding SectionIsMovies}" Content="Фильмы" Command="{Binding GoMoviesCommand}" />
+              <Button Classes="nav" Classes.active="{Binding SectionIsSeries}" Content="Сериалы" Command="{Binding GoSeriesCommand}" />
+              <Button Classes="nav" Classes.active="{Binding SectionIsAlbums}" Content="Альбомы" Command="{Binding GoAlbumsCommand}" />
+              <Button Classes="nav" Classes.active="{Binding SectionIsPicks}" Content="Подбор" Command="{Binding GoPicksCommand}" />
+              <Button Classes="nav" Classes.active="{Binding SectionIsScan}" Content="Сканер" Command="{Binding GoScanCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </DockPanel>
+      </Border>
+      <Grid Grid.Row="0" Grid.Column="1" RowDefinitions="Auto,*">
+        <StackPanel Margin="16,14,16,8" Spacing="6">
+          <TextBlock Classes="kicker" Text="{Binding Kicker}" />
+          <Grid ColumnDefinitions="*,240">
+            <TextBlock Text="{Binding Heading}" FontSize="26" VerticalAlignment="Center" />
+            <TextBox Grid.Column="1" Watermark="Название, человек, жанр" Text="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+          </Grid>
+          <TextBlock Classes="muted" Text="{Binding Intro}" TextWrapping="Wrap" IsVisible="{Binding HasIntro}" />
+          <TextBlock Classes="error" Text="{Binding ListError}" />
+        </StackPanel>
+        <Panel Grid.Row="1">
+          <DockPanel IsVisible="{Binding ShowRows}" Margin="8,0,8,8">
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="8" IsVisible="{Binding ShowShelfComposer}">
+              <TextBox Width="260" Watermark="Название новой полки" Text="{Binding NewShelfTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+              <Button Content="Создать" Command="{Binding CreateShelfCommand}" />
+            </StackPanel>
+            <Panel>
+              <ListBox Classes="archive" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:RowItem">
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                      <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Classes="muted" Text="{Binding Aside}" Margin="12,0,0,0" />
+                      <TextBlock Grid.Column="2" Classes="muted" Text="{Binding Mark}" MinWidth="96" HorizontalAlignment="Right" Margin="12,0,0,0" />
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <TextBlock Classes="muted" Margin="16" Text="В этом разделе пусто." IsVisible="{Binding ShowEmptyList}" />
+            </Panel>
+          </DockPanel>
+          <ScrollViewer IsVisible="{Binding ShowScan}" Margin="16,0,16,16">
+            <StackPanel Spacing="8" MaxWidth="720">
+              <TextBlock Classes="muted" Text="Сервер читает имена файлов и теги. Сначала оставьте пробный проход. Относительный путь sample-library ищется от корня проекта." TextWrapping="Wrap" />
+              <TextBlock Classes="muted" Text="Путь, видимый серверу" />
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Text="{Binding ScanPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Grid.Column="1" Content="Обзор" Command="{Binding BrowseCommand}" Margin="8,0,0,0" />
+              </Grid>
+              <CheckBox Content="Только посмотреть, ничего не записывать" IsChecked="{Binding DryRun}" />
+              <Button Content="Запустить" Command="{Binding ScanCommand}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Left" />
+              <TextBlock Text="{Binding ScanSummary}" TextWrapping="Wrap" />
+              <ItemsControl ItemsSource="{Binding ScanLines}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ScanLine">
+                    <StackPanel Margin="0,8,0,0" Spacing="2">
+                      <TextBlock Text="{Binding Title}" />
+                      <TextBlock Classes="muted" Text="{Binding Detail}" />
+                      <TextBlock Classes="muted" Text="{Binding Path}" FontFamily="DejaVu Sans Mono, monospace" FontSize="11" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+        </Panel>
+      </Grid>
+      <Border Grid.Row="0" Grid.Column="2" Background="#1B1915" BorderBrush="#3A342A" BorderThickness="1,0,0,0">
+        <ScrollViewer Padding="16,14">
+          <StackPanel Spacing="8">
+            <StackPanel Spacing="6" IsVisible="{Binding ShowEmpty}">
+              <TextBlock Classes="kicker" Text="КАРТОЧКА" />
+              <TextBlock Classes="muted" Text="Выберите запись. Оценка, избранное и заметка останутся только у вас." TextWrapping="Wrap" />
+            </StackPanel>
+            <StackPanel Spacing="8" IsVisible="{Binding HasMedia}">
+              <TextBlock Classes="kicker" Text="{Binding DetailKicker}" />
+              <TextBlock Text="{Binding DetailTitle}" FontSize="24" TextWrapping="Wrap" />
+              <TextBlock Classes="muted" Text="{Binding DetailMeta}" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding DetailGenres}" Foreground="#E0A15A" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding DetailBlurb}" TextWrapping="Wrap" />
+              <TextBlock Classes="muted" Text="{Binding DetailProgress}" IsVisible="{Binding ShowProgress}" />
+              <TextBlock Classes="kicker" Text="СТАТУС" Margin="0,8,0,0" />
+              <ItemsControl ItemsSource="{Binding Statuses}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ChoiceChip">
+                    <Button Classes="chip" Classes.active="{Binding Active}" Content="{Binding Label}" Command="{Binding Command}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Classes="kicker" Text="ОЦЕНКА" />
+              <ItemsControl ItemsSource="{Binding Ratings}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:RatingChip">
+                    <Button Classes="chip" Classes.active="{Binding Active}" Content="{Binding Value}" Command="{Binding Command}" MinWidth="36" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <Button Classes="chip" Classes.active="{Binding IsFavorite}" Content="{Binding FavoriteLabel}" Command="{Binding FavoriteCommand}" HorizontalAlignment="Left" />
+              <TextBlock Classes="kicker" Text="ЗАМЕТКА" Margin="0,6,0,0" />
+              <TextBox Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" MinHeight="84" TextWrapping="Wrap" />
+              <Button Content="Сохранить заметку" Command="{Binding SaveNotesCommand}" HorizontalAlignment="Left" />
+              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding ShowShelfPicker}">
+                <ComboBox Width="180" ItemsSource="{Binding ShelfChoices}" SelectedItem="{Binding ShelfTarget}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="models:ShelfDto">
+                      <TextBlock Text="{Binding Title}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Content="На полку" Command="{Binding AddToShelfCommand}" />
+              </StackPanel>
+              <StackPanel Spacing="4" IsVisible="{Binding HasFile}">
+                <TextBlock Classes="kicker" Text="ФАЙЛ" />
+                <TextBlock Classes="muted" Text="{Binding FilePath}" TextWrapping="Wrap" FontFamily="DejaVu Sans Mono, monospace" FontSize="11" />
+                <Button Content="Открыть файл" Command="{Binding OpenFileCommand}" HorizontalAlignment="Left" />
+              </StackPanel>
+              <ItemsControl ItemsSource="{Binding Episodes}" IsVisible="{Binding HasEpisodes}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:EpisodeItem">
+                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,3">
+                      <Button Classes="chip" Content="{Binding Tick}" Command="{Binding ToggleCommand}" Width="32" />
+                      <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="6,0" />
+                      <Button Grid.Column="2" Classes="ghost" Content="файл" Command="{Binding OpenCommand}" IsVisible="{Binding CanOpen}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <ItemsControl ItemsSource="{Binding Tracks}" IsVisible="{Binding HasTracks}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:TrackItem">
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,3">
+                      <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+                      <Button Grid.Column="1" Classes="ghost" Content="файл" Command="{Binding OpenCommand}" IsVisible="{Binding CanOpen}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+            <StackPanel Spacing="8" IsVisible="{Binding HasShelf}">
+              <TextBlock Classes="kicker" Text="ПОЛКА" />
+              <TextBlock Text="{Binding ShelfTitle}" FontSize="24" TextWrapping="Wrap" />
+              <TextBlock Classes="muted" Text="{Binding ShelfBlurb}" TextWrapping="Wrap" />
+              <ItemsControl ItemsSource="{Binding ShelfEntries}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ShelfEntryItem">
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,4">
+                      <Button Classes="ghost" Content="{Binding Title}" Command="{Binding OpenCommand}" IsEnabled="{Binding CanOpen}" HorizontalAlignment="Left" />
+                      <Button Grid.Column="1" Classes="ghost" Content="убрать" Command="{Binding RemoveCommand}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+      <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="#0D0C0A" BorderBrush="#3A342A" BorderThickness="0,1,0,0" Padding="12,0">
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+          <TextBlock Classes="muted" Text="{Binding ApiLabel}" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Classes="muted" Text="{Binding RevisionText, StringFormat=ревизия {0}}" VerticalAlignment="Center" Margin="16,0" />
+          <TextBlock Grid.Column="2" Classes="muted" Text="{Binding SyncNote}" VerticalAlignment="Center" Margin="0,0,16,0" />
+          <TextBlock Grid.Column="3" Classes="muted" Text="{Binding RuntimeLabel}" VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+    </Grid>
+  </Panel>
+</Window>
